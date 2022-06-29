@@ -1,4 +1,8 @@
 inter = 0
+int_table = []
+
+def jmp_x_bytes(X, new_ptr):
+    return int.from_bytes(new_ptr+X, 'little')
 
 def do_insturctions(insts):
     # inst = instuction
@@ -8,26 +12,35 @@ def do_insturctions(insts):
 
     while not_done:
         operands = []
+        new_inst_ptr = inst_ptr+1
         
         match insts[inst_ptr]:
-            new_inst_ptr = inst_ptr+1
             
             # goto next instuction
             case 0:
                 inst_ptr = new_inst_ptr
+                
+
+#                           == jumps ==
+
             # long jmp with 64 bit uint
             case 1:
-                if len(insts) >= new_inst_ptr:
-                    inst_ptr = insts[new_inst_ptr]
-                else:
-                    # inst id, memory address
-                    return [1, new_inst_ptr]
-            # interupt with id X
+                #inst_ptr = int.from_bytes(new_inst_ptr:new_inst_ptr+8, 'little')
+                inst_ptr = jmp_x_bytes(8, new_inst_ptr)
+            # 32 bit jmp
             case 2:
-                # todo: make this use a table of interupts that are
-                # made by the os/bios
+                inst_ptr = jmp_x_bytes(4, new_inst_ptr)
+            # 16 bit jmp
+            case 3:
+                inst_ptr = jmp_x_bytes(2, new_inst_ptr)
+            # 8 bit jmp
+            case 4:
+                inst_ptr = jmp_x_bytes(1, new_inst_ptr)
+#                       == other things ==
+            # interupt with id X
+            case 10:
                 inter = insts[new_inst_ptr]
-                return
+                inst_ptr = int_table[insts[new_inst_ptr]]
                 
 
 def boot():
@@ -45,5 +58,5 @@ def boot():
 
 
 if __name__ == "__main__":
-    print("bios starting")
+    print("starting emulator")
     boot()
